@@ -17,6 +17,10 @@ router.get('/:id', (req, res, next) => {
     return p.id === placeId;
   });
 
+  if (!place) {
+    return res.status(404).json({ message: 'Place not found' });
+  }
+
   console.log('GET');
   res.json({ place });
 });
@@ -27,6 +31,10 @@ router.get('/user/:uid', (req, res, next) => {
   const place = DUMMY_DATA.find(p => {
     return p.creator === userId;
   });
+
+  if (!place) {
+    return res.status(404).json({ message: 'User doesn\'t have any place'})
+  }
 
   res.json({ place });
 });
