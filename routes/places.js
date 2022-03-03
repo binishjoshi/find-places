@@ -18,7 +18,9 @@ router.get('/:id', (req, res, next) => {
   });
 
   if (!place) {
-    return res.status(404).json({ message: 'Place not found' });
+    const error = new Error('No place found');
+    error.code = 404;
+    throw error;
   }
 
   console.log('GET');
@@ -33,7 +35,8 @@ router.get('/user/:uid', (req, res, next) => {
   });
 
   if (!place) {
-    return res.status(404).json({ message: 'User doesn\'t have any place'})
+    const error = new Error('User doesn\'t have any place');
+    return next(error);
   }
 
   res.json({ place });
