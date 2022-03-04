@@ -16,4 +16,5 @@ app.use((err, req, res, next) => {
   res.json({ message: err.message || 'Unknown server error' });
 });
 
+console.log('App listening at 5000');
 app.listen(5000);
