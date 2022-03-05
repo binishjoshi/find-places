@@ -5,9 +5,16 @@ const placesRoutes = require('./routes/places');
 
 const app = express();
 
+const HttpError = require('./models/http-error');
+
 app.use(bodyParser.json());
 
 app.use('/api/places', placesRoutes);
+
+app.use((req, res, next) => {
+  const error = new HttpError('Could not find route', 404);
+  throw error;
+});
 
 app.use((err, req, res, next) => { 
   if (res.headerSent) {
