@@ -1,4 +1,5 @@
 const uuid = require('uuid');
+const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 
@@ -41,6 +42,12 @@ const getPlacesByUserId = (req, res, next) => {
 };
 
 const createPlace = (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new HttpError('Invalid inputs passed', 422);
+  }
+
   const { title, description, creator } = req.body;
 
   const newPlace = {
@@ -56,6 +63,12 @@ const createPlace = (req, res, next) => {
 };
 
 const updatePlace = (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new HttpError('Write sth you fool', 422);
+  }
+
   const { title, description } = req.body;
   const placeId = req.params.pid;
 

@@ -1,4 +1,5 @@
 const uuid = require('uuid');
+const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 
@@ -16,6 +17,12 @@ const getUsers = (req, res, next) => {
 };
 
 const signup = (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new HttpError('Dumb bitch', 422);
+  }
+
   const { username, email, password } = req.body;
 
   const hasUser = DUMMY_USERS.find(u => u.email === email);
@@ -37,6 +44,12 @@ const signup = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new HttpError('Valiation error', 422);
+  }
+
   const { email, password } = req.body;
 
   const identify = DUMMY_USERS.find(u => email === u.email);
