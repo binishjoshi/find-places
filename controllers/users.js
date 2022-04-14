@@ -3,6 +3,8 @@ const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 
+const User = require('../models/user');
+
 const DUMMY_USERS = [
   {
     id: 'u1',
@@ -12,33 +14,54 @@ const DUMMY_USERS = [
   }
 ]
 
-const getUsers = (req, res, next) => {
-  res.status(200).json({ users: DUMMY_USERS });
+const getUsers = async (req, res, next) => {
+  let users;
+
+  try {
+    users = await User.find();
+  } catch (err) {
+    const error = new HttpError('No users', 500);
+    return next(error);
+  }
+  res.status(200).json({ users });
 };
 
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
+
+  let users;
 
   if (!errors.isEmpty()) {
     throw new HttpError('Dumb bitch', 422);
   }
 
+  try {
+    users = await User.find();
+  } catch (err) {
+    null;
+  }
+
   const { username, email, password } = req.body;
 
-  const hasUser = DUMMY_USERS.find(u => u.email === email);
+  const hasUser = users.find(u => u.email === email);
 
   if (hasUser) {
     throw new HttpError(`Account with ${email} already exists.`, 422);
   }
 
-  const createdUser = {
+  const createdUser = User({
     id: uuid.v4(),
     username,
     email,
     password
-  };
+  });
 
-  DUMMY_USERS.push(createdUser);
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError('Signup failed', 500);
+    return next(error);
+  }
 
   res.status(201).json({ user: createdUser });
 };
