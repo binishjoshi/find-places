@@ -81,7 +81,7 @@ const updatePlace = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Write sth you fool', 422);
+    return next(new HttpError('Write sth you fool', 422));
   }
 
   const { title, description } = req.body;

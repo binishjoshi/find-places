@@ -5,15 +5,6 @@ const HttpError = require('../models/http-error');
 
 const User = require('../models/user');
 
-const DUMMY_USERS = [
-  {
-    id: 'u1',
-    name: 'lel',
-    email: 'lel@pm.me',
-    password: 'lel123456'
-  }
-]
-
 const getUsers = async (req, res, next) => {
   let users;
 
@@ -29,24 +20,16 @@ const getUsers = async (req, res, next) => {
 const signup = async (req, res, next) => {
   const errors = validationResult(req);
 
-  let users;
-
-  if (!errors.isEmpty()) {
-    throw new HttpError('Dumb bitch', 422);
-  }
-
-  try {
-    users = await User.find();
-  } catch (err) {
-    null;
-  }
-
   const { username, email, password } = req.body;
 
-  const hasUser = users.find(u => u.email === email);
-
-  if (hasUser) {
-    throw new HttpError(`Account with ${email} already exists.`, 422);
+  if (!errors.isEmpty()) {
+    let errorMessage = 'Invalid input/s: '
+    let invalidFields = [];
+    errors.errors.forEach(errObj => {
+      invalidFields.push(errObj.param);
+      errorMessage += `${errObj.param} `;
+    });
+    return next(new HttpError(errorMessage, 422, { invalidFields }));
   }
 
   const createdUser = User({
@@ -59,6 +42,11 @@ const signup = async (req, res, next) => {
   try {
     await createdUser.save();
   } catch (err) {
+    if (err.code === 11000) {
+      let field = Object.keys(err.keyValue)[0];
+      let value = err.keyValue[field];
+      return next(new HttpError(`Account with ${field} ${value} already exists. `, 500))
+    }
     const error = new HttpError('Signup failed', 500);
     return next(error);
   }
