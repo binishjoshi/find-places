@@ -18,6 +18,9 @@ router.post(
       .isEmpty(),
     check('description')
       .isLength({ min: 5 }),
+    check('creator')
+      .not()
+      .isEmpty(),
   ],
   placesController.createPlace);
 

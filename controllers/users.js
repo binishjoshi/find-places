@@ -54,34 +54,32 @@ const signup = async (req, res, next) => {
   res.status(201).json({ user: createdUser });
 };
 
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
   const errors = validationResult(req);
+  let identify;
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Valiation error', 422);
+    return next(new HttpError('Valiation error', 422));
   }
 
   const { email, password } = req.body;
 
-  const identify = DUMMY_USERS.find(u => email === u.email);
+  try {
+    identify = await User.findOne({ email });
+  } catch (err) {
+    return next(new HttpError('Login failed', 500));
+  }
 
   if (!identify) {
-    throw new HttpError(`No user found with email ${email}`, 401);
+    return next(new HttpError(`No user found with email ${email}`, 401));
   }
-
-  if (!password) {
-    throw new HttpError('Try entering password before you login you dimwit', 401);
-  }
-
-  console.log(password);
-  console.log(identify.password);
 
   if (identify.password !== password) {
-    throw new HttpError(`Wrong password for ${email}`, 401);
+    return next(new HttpError(`Wrong password for ${email}`, 401));
   }
 
   if (identify.password === password) {
-    res.json({ message: 'logged in' });
+    res.json({ message: 'logged in', id: identify.id, username: identify.username, email: identify.email }, 200);
   }
 };
 
