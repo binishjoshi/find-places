@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
 });
 
 mongoose
-  .connect('mongodb://127.0.0.1:27017/someDB')
+  .connect('mongodb+srv://mongod:aPryNq3PSQglaVxg@cluster0.ufx2e.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
   .then(() => {
     console.log('App listening at 5000');
     app.listen(5000);

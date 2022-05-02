@@ -4,15 +4,8 @@ const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 
 const Place = require('../models/place');
-
-let DUMMY_DATA = [
-  {
-    id: 'p1',
-    title: 'Changu',
-    description: 'heh',
-    creator: 'u1',
-  }
-];
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.id;
@@ -67,10 +60,27 @@ const createPlace = async (req, res, next) => {
     creator
   });
 
+  let user;
+
   try {
-    await newPlace.save();
+    user = await User.findById(creator);
   } catch (err) {
-    const error = new HttpError('Failed creating place failed', 500);
+    return next(new HttpError('Bad user data', 500));
+  }
+
+  if (!user) {
+    return next(new HttpError('User not valid', 404));
+  }
+
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newPlace.save({ session: sess });
+    user.places.push(newPlace);
+    await user.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    const error = new HttpError('Failed creating place', 500);
     return next(error);
   }
 
@@ -105,19 +115,30 @@ const updatePlace = async (req, res, next) => {
 
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
+  let place;
+
   try {
-    const deleted = await Place.deleteOne({ "_id": placeId });
-    if (deleted.deletedCount === 0) {
-      res.status(204).json({ "message": "Can't find the request place to delete" });
-      return;
-    }
+    place = await Place.findById(placeId).populate('creator');
   } catch (err) {
     const error = new HttpError('Delete failed', 500);
     return next(error);
   }
-  // res.json({
-  //   "message": "Place deleted"
-  // }, 200);
+
+  if (!place) {
+    return next(new HttpError('Place not found to delete', 404));
+  }
+
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await place.remove({ session: sess });
+    place.creator.places.pull(place);
+    await place.creator.save({ sessin: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    return next(new HttpError('Delete failed', 500));
+  }
+
   res.status(200).json({ "message": "Place deleted" });
 };
 

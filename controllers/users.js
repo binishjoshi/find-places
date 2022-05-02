@@ -9,7 +9,7 @@ const getUsers = async (req, res, next) => {
   let users;
 
   try {
-    users = await User.find();
+    users = await User.find({}, '-password');
   } catch (err) {
     const error = new HttpError('No users', 500);
     return next(error);
@@ -36,7 +36,8 @@ const signup = async (req, res, next) => {
     id: uuid.v4(),
     username,
     email,
-    password
+    password,
+    places: []
   });
 
   try {
