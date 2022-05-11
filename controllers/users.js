@@ -65,6 +65,8 @@ const login = async (req, res, next) => {
 
   const { email, password } = req.body;
 
+  // await new Promise(r => setTimeout(r, 7000));
+
   try {
     identify = await User.findOne({ email });
   } catch (err) {
@@ -80,7 +82,7 @@ const login = async (req, res, next) => {
   }
 
   if (identify.password === password) {
-    res.json({ message: 'logged in', id: identify.id, username: identify.username, email: identify.email }, 200);
+    res.json({ message: 'logged in', id: identify._id, username: identify.username, email: identify.email }, 200);
   }
 };
 
