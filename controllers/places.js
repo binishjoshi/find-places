@@ -28,10 +28,17 @@ const getPlaceById = async (req, res, next) => {
 
 const getPlacesByUsername = async (req, res, next) => {
   const username = req.params.username;
+  let user;
   let places;
 
   try {
-    places = await Place.find({ "creator": username });
+    user = await User.findOne({ "username": username });
+  } catch (err) {
+    return next(new HttpError(`No user with username ${username}`, 404));
+  }
+
+  try {
+    places = await Place.find({ "creator": user._id });
   } catch (err) {
     const error = new HttpError('There are no places in the db');
     return next(error);
